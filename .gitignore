@@ -1,3 +1,8 @@
+# Specific to this project
+stage*/
+*.fits
+*.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
