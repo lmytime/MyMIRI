@@ -8,7 +8,8 @@
 '''
 
 
-# This step is very time-consuming, so we run it in the py file instead of the notebook.
+# This step is very time-consuming
+# So we run it in the py file instead of the notebook.
 
 # Packages that allow us to get information about objects:
 import os
@@ -44,34 +45,34 @@ output_dir_gainscale = output_dir+'gainscale/'
 os.makedirs(output_dir, exist_ok=True)
 
 #same as previous cell
-os.makedirs(output_dir_dq, exist_ok=True)
-os.makedirs(output_dir_saturation, exist_ok=True)
-os.makedirs(output_dir_ipc, exist_ok=True)
-os.makedirs(output_dir_firstframe, exist_ok=True)
-os.makedirs(output_dir_lastframe, exist_ok=True)
-os.makedirs(output_dir_reset, exist_ok=True)
-os.makedirs(output_dir_linearity, exist_ok=True)
-os.makedirs(output_dir_rscd, exist_ok=True)
-os.makedirs(output_dir_darkcurrent, exist_ok=True)
-os.makedirs(output_dir_refpix, exist_ok=True)
-os.makedirs(output_dir_jump, exist_ok=True)
-os.makedirs(output_dir_rampfitting, exist_ok=True)
-os.makedirs(output_dir_gainscale, exist_ok=True)
+# os.makedirs(output_dir_dq, exist_ok=True)
+# os.makedirs(output_dir_saturation, exist_ok=True)
+# os.makedirs(output_dir_ipc, exist_ok=True)
+# os.makedirs(output_dir_firstframe, exist_ok=True)
+# os.makedirs(output_dir_lastframe, exist_ok=True)
+# os.makedirs(output_dir_reset, exist_ok=True)
+# os.makedirs(output_dir_linearity, exist_ok=True)
+# os.makedirs(output_dir_rscd, exist_ok=True)
+# os.makedirs(output_dir_darkcurrent, exist_ok=True)
+# os.makedirs(output_dir_refpix, exist_ok=True)
+# os.makedirs(output_dir_jump, exist_ok=True)
+# os.makedirs(output_dir_rampfitting, exist_ok=True)
+# os.makedirs(output_dir_gainscale, exist_ok=True)
 
 #If some parameters are known to have better results with certain value use the dictionary to edit those parameters
-parameter_dict = {"dq_init": {"output_dir": output_dir_dq,"save_results": True},
-                  "saturation": {"output_dir": output_dir_saturation,"save_results": True},
-                  "ipc": {"output_dir": output_dir_ipc,"save_results": True},
-                  "firstframe": {"output_dir": output_dir_firstframe,"save_results": True},
-                  "lastframe": {"output_dir": output_dir_lastframe,"save_results": True},
-                  "reset": {"output_dir": output_dir_reset,"save_results": True},
-                  "linearity": {"output_dir": output_dir_linearity,"save_results": True},
-                  "rscd": {"output_dir": output_dir_rscd,"save_results": True},
-                  "dark_current": {"output_dir": output_dir_darkcurrent,"save_results": True},
-                  "refpix": {"output_dir": output_dir_refpix,"save_results": True,"use_side_ref_pixels":False},
-                  "jump": {"rejection_threshold": 5,"output_dir": output_dir_jump,"save_results": True}, # if one sees CR not being flagged properly, this is the step to modify
-                  "ramp_fit": {"output_dir": output_dir_rampfitting,"save_results": True},
-                  "gain_scale": {"output_dir": output_dir_gainscale,"save_results": True},
+parameter_dict = {"dq_init": {"output_dir": output_dir_dq,"save_results": False},
+                  "saturation": {"output_dir": output_dir_saturation,"save_results": False},
+                  "ipc": {"output_dir": output_dir_ipc,"save_results": False},
+                  "firstframe": {"output_dir": output_dir_firstframe,"save_results": False},
+                  "lastframe": {"output_dir": output_dir_lastframe,"save_results": False},
+                  "reset": {"output_dir": output_dir_reset,"save_results": False},
+                  "linearity": {"output_dir": output_dir_linearity,"save_results": False},
+                  "rscd": {"output_dir": output_dir_rscd,"save_results": False},
+                  "dark_current": {"output_dir": output_dir_darkcurrent,"save_results": False},
+                  "refpix": {"output_dir": output_dir_refpix,"save_results": False,"use_side_ref_pixels":False},
+                  "jump": {"rejection_threshold": 5,"output_dir": output_dir_jump,"save_results": False}, # if one sees CR not being flagged properly, this is the step to modify
+                  "ramp_fit": {"output_dir": output_dir_rampfitting,"save_results": False},
+                  "gain_scale": {"output_dir": output_dir_gainscale,"save_results": False},
                  }
 
 #Directory where the uncalibrated files are
@@ -80,9 +81,20 @@ input_dir='./uncal/'
 list_files=glob.glob(input_dir+'*_uncal.fits')
 print('No of files to be processed:', len(list_files))
 
-for i in range(len(list_files)):    
-    miri_uncal_file = list_files[i]
-    print('File currently being processed:',miri_uncal_file)
+# multi process to run the pipeline
+from multiprocessing import Pool
+from functools import partial
+
+def run_pipeline_stage1(uncal_file, output_dir, save_results=True, steps=parameter_dict, logcfg='stage1-log.cfg'):
+    print('File currently being processed:', uncal_file)
     # Call the pipeline method using the dictionary
-    miri_output = calwebb_detector1.Detector1Pipeline.call(miri_uncal_file, output_dir=output_dir, save_results=True, steps=parameter_dict,logcfg='stage1-log.cfg')
-    
+    miri_output = calwebb_detector1.Detector1Pipeline.call(uncal_file, output_dir=output_dir, save_results=True, steps=parameter_dict,logcfg='stage1-log.cfg')
+
+# If no multiprocessing is needed, use the following code
+# for uncal_file in list_files:    
+#     run_pipeline_stage1(uncal_file, output_dir)
+
+# If multiprocessing is needed, use the following code
+num_cores = 20
+with Pool(num_cores) as p:
+    p.map(partial(run_pipeline_stage1, output_dir=output_dir), list_files)
