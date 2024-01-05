@@ -87,8 +87,19 @@ from functools import partial
 
 def run_pipeline_stage1(uncal_file, output_dir, save_results=True, steps=parameter_dict, logcfg='stage1-log.cfg'):
     print('File currently being processed:', uncal_file)
+    # Check if the file is already processed
+    rate_file_path = f"{output_dir}{uncal_file.split('/')[-1].split('.')[0][:-6]}_rate.fits"
+    if os.path.isfile(rate_file_path):
+        print('File already processed. Skipping...')
     # Call the pipeline method using the dictionary
-    miri_output = calwebb_detector1.Detector1Pipeline.call(uncal_file, output_dir=output_dir, save_results=True, steps=parameter_dict,logcfg='stage1-log.cfg')
+    else:
+        try:
+            miri_output = calwebb_detector1.Detector1Pipeline.call(uncal_file, output_dir=output_dir, save_results=True, steps=parameter_dict,logcfg='stage1-log.cfg')
+        except Exception as e:
+            # write the error message to the log file
+            with open(f"stage1-error-{uncal_file.split('/')[-1].split('.')[0]}.log", 'a') as f:
+                f.write(str(e))
+                f.write('\n')
 
 # If no multiprocessing is needed, use the following code
 # for uncal_file in list_files:    
