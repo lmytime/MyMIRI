@@ -95,6 +95,6 @@ def run_pipeline_stage1(uncal_file, output_dir, save_results=True, steps=paramet
 #     run_pipeline_stage1(uncal_file, output_dir)
 
 # If multiprocessing is needed, use the following code
-num_cores = 20
+num_cores = 25
 with Pool(num_cores) as p:
     p.map(partial(run_pipeline_stage1, output_dir=output_dir), list_files)

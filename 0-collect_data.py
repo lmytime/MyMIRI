@@ -5,14 +5,18 @@ from glob import glob
 # Data are downloaded in a directory composed of many sub-directories
 # We need to move _uncal.fits files to a directory named uncal
 
-MAST_dir = "/data/public/JWST-MAST-DATA/dead_proposal_1837/MIRI/data"
+MAST_dir = "/data/public/JWST-MAST-DATA/proposal_1837/MIRI/IMAGE/data"
 uncal_dir = "./uncal"
 
 uncal_files_path = glob(os.path.join(MAST_dir, "*/*_uncal.fits"))
 print("Number of uncal files: ", len(uncal_files_path))
 os.makedirs(uncal_dir, exist_ok=True)
 for url in uncal_files_path:
-    os.system(f"cp {url} {uncal_dir}")
+    # os.system(f"cp {url} {uncal_dir}")
+    # do not copy the data, just make a symbolic link
+    symbolic_link = os.path.join(uncal_dir, os.path.basename(url))
+    if not os.path.exists(symbolic_link):
+        os.symlink(url, symbolic_link)
 
 # %%
 import jwst
@@ -20,7 +24,7 @@ from astropy.io import fits
 # If you want to directly use the _rate.fits data from MAST, you can use the following code to prepare the data
 # Then you can skip the 1-uncal-to-rate.py step.
 # But you have to make sure that the data are calibrated with the latest pipeline.
-MAST_dir = "/data/public/JWST-MAST-DATA/dead_proposal_1837/MIRI/data"
+MAST_dir = "/data/public/JWST-MAST-DATA/proposal_1837/MIRI/data"
 uncal_dir = "./stage1"
 
 uncal_files_path = glob(os.path.join(MAST_dir, "*/*_rate.fits"))
